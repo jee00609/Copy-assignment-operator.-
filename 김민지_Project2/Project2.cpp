@@ -1,0 +1,123 @@
+#include "stdafx.h"
+#include<iostream>
+using namespace std;
+
+//제작자 코드
+class CMyData {
+public:
+	/*
+	변환 생성자
+	explicit CMyData(int nParam) {
+	cout << "CMyData(int)" << endl;
+	m_pnData = new int(nParam);
+	}
+	*/
+
+	//복사 생성자
+	CMyData(const CMyData &rhs) {
+		cout << "CMyData(const CMyData &)" << endl;
+		m_pnData = new int(*rhs.m_pnData);
+	}
+
+	//소멸자
+	~CMyData() {
+		cout << "~CMyData()" << endl;
+		delete m_pnData;
+	}
+
+	operator int() {
+		return *m_pnData;
+	}
+
+	//덧셈 연산자 다중 정의 
+	CMyData operator+(const CMyData &rhs) {
+		//호출자 함수에서 이름 없는 임시 객체가 생성된다.
+		CMyData data;
+		data.SetData(*m_pnData + *rhs.m_pnData);
+		return data;
+	}
+
+	//단순 대입 연산자 다중 정의
+	CMyData& operator=(const CMyData &rhs) {
+		cout << "operator=" << endl;
+		if (this == &rhs)
+			return *this;
+
+		delete m_pnData;
+		m_pnData = new int(*rhs.m_pnData);
+
+		return *this;
+	}
+
+	//이동 대입 연산자 다중 정의
+	CMyData& operator=(CMyData &&rhs) {
+		cout << "이동대입연산자-operator(Move)" << endl;
+
+		//얕은 복사를 수행하고 원본은 NULL로 초기화 한다.
+		m_pnData = rhs.m_pnData;
+		rhs.m_pnData = NULL;
+
+		return *this;
+	}
+
+	//디폴트 생성자
+	CMyData() {
+		cout << "CMyData()" << endl;
+	}
+
+	//이동 생성자
+	CMyData(CMyData &&rhs)
+		:m_pnData(rhs.m_pnData) {
+		cout << "이동생성자-CMyData(const CTestData &&)" << endl;
+	}
+
+	int GetData() const { return *m_pnData; }
+	void  SetData(int nParam) {
+		m_pnData = new int(nParam);
+		*m_pnData = nParam;
+	}
+
+private:
+	//int m_nData = 0;
+
+	int *m_pnData = nullptr;
+};
+
+CMyData TestFunc(int nParam) {
+	cout << "***TestFunc(): Begin***" << endl;
+	CMyData a;
+	a.SetData(nParam);
+	cout << "***TestFunc(): End***" << endl;
+
+	return a;
+}
+
+
+
+//사용자 코드
+int main()
+{
+	//CMyData a(0), b(3), c(4);
+
+	CMyData a, b, c;
+	a.SetData(0);
+	b.SetData(3);
+	c.SetData(4);
+	//cout << a.GetData() << endl;->실행 성공!
+	cout << "*****Before*****" << endl;
+
+	//a = b;
+	//cout << a.GetData() << endl; ->실행 성공!
+
+	//이동 생성자 및 이동 대입 연산자가 실행된다!
+
+	a = b + c; //이동생성자를 부르고 나서 m_pnData의 값이 이상해진다. 왜지???
+	cout << "*****After*****" << endl;
+	cout << a.GetData() << endl;
+
+	a = b;
+	cout << a.GetData() << endl;
+
+	return 0;
+}
+
